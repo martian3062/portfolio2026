@@ -1,13 +1,13 @@
-// src/ar/ARCursor.jsx
 import React, { useContext, useEffect, useRef } from "react";
 import { ARContext } from "./ARProvider";
 
 /**
- * ✅ ARCursor (MediaPipe frontend-only)
- * - reads x/y/confidence from latestRef.current
- * - hides when disabled / not running / low confidence
- * - pinch “pulse” feedback
- * - keeps inside viewport bounds
+ * ✅ ARCursor
+ * - Mirrored finger cursor (index finger)
+ * - Stable pinch feedback (hysteresis-aware)
+ * - Two-hand zoom visual feedback
+ * - Confidence + status gated
+ * - RAF-driven (zero rerenders)
  */
 export default function ARCursor() {
   const ar = useContext(ARContext);
@@ -23,19 +23,17 @@ export default function ARCursor() {
 
       const pkt = ar?.latestRef?.current;
       const enabled = ar?.enabled !== false;
+      const running = ar?.status === "tracking" || ar?.status === "running";
 
-      // ✅ MediaPipe running status
-      const running = ar?.status === "running";
-
-      // If page is hidden, hide cursor + stop doing heavy work
-      if (document.hidden) {
-        if (dot) dot.style.opacity = "0";
-        if (ring) ring.style.opacity = "0";
-        raf = requestAnimationFrame(loop);
-        return;
-      }
-
-      if (!dot || !ring || !enabled || !pkt) {
+      // hard hide conditions
+      if (
+        document.hidden ||
+        !dot ||
+        !ring ||
+        !enabled ||
+        !running ||
+        !pkt
+      ) {
         if (dot) dot.style.opacity = "0";
         if (ring) ring.style.opacity = "0";
         raf = requestAnimationFrame(loop);
@@ -45,7 +43,6 @@ export default function ARCursor() {
       const x = typeof pkt.x === "number" ? pkt.x : 0.5;
       const y = typeof pkt.y === "number" ? pkt.y : 0.5;
 
-      // confidence can come from packet or provider state
       const conf =
         typeof pkt.confidence === "number"
           ? pkt.confidence
@@ -53,29 +50,43 @@ export default function ARCursor() {
           ? ar.confidence
           : 0;
 
-      // normalized -> viewport pixels
+      if (conf < 0.35) {
+        dot.style.opacity = "0";
+        ring.style.opacity = "0";
+        raf = requestAnimationFrame(loop);
+        return;
+      }
+
+      /* ---------- MIRRORED SCREEN COORDS ---------- */
       let px = x * window.innerWidth;
       let py = y * window.innerHeight;
 
-      // keep in bounds (avoid edge jitter)
       px = Math.max(0, Math.min(window.innerWidth - 1, px));
       py = Math.max(0, Math.min(window.innerHeight - 1, py));
 
+      const mx = window.innerWidth - px;
+
+      /* ---------- GESTURE STATE ---------- */
       const pinch =
         !!pkt.pinch ||
         !!pkt.pinching ||
         !!ar?.pinch ||
         !!ar?.pinching;
 
-      const base = `translate(${px}px, ${py}px) translate(-50%, -50%)`;
-      ring.style.transform = `${base} scale(${pinch ? 1.35 : 1})`;
+      const zooming = !!ar?.events?.zoom;
+
+      /* ---------- TRANSFORMS ---------- */
+      const base = `translate(${mx}px, ${py}px) translate(-50%, -50%)`;
+
+      let scale = 1;
+      if (pinch) scale = 1.35;
+      if (zooming) scale = 1.6;
+
+      ring.style.transform = `${base} scale(${scale})`;
       dot.style.transform = base;
 
-      // visibility rules
-      const visible = running && conf >= 0.35;
-      const op = visible ? "1" : "0";
-      dot.style.opacity = op;
-      ring.style.opacity = op;
+      ring.style.opacity = "1";
+      dot.style.opacity = "1";
 
       raf = requestAnimationFrame(loop);
     };
@@ -86,20 +97,21 @@ export default function ARCursor() {
 
   return (
     <>
-      {/* outer ring */}
+      {/* Outer Ring */}
       <div
         ref={ringRef}
         style={{
           position: "fixed",
           left: 0,
           top: 0,
-          width: 34,
-          height: 34,
+          width: 36,
+          height: 36,
           borderRadius: 999,
           zIndex: 999998,
           pointerEvents: "none",
-          border: "1px solid rgba(124,58,237,.55)",
-          boxShadow: "0 0 22px rgba(59,130,246,.35)",
+          border: "1px solid rgba(124,58,237,.6)",
+          boxShadow:
+            "0 0 28px rgba(124,58,237,.45), inset 0 0 12px rgba(59,130,246,.25)",
           background: "rgba(255,255,255,.03)",
           transition: "transform 90ms ease, opacity 160ms ease",
           opacity: 0,
@@ -107,7 +119,7 @@ export default function ARCursor() {
         aria-hidden="true"
       />
 
-      {/* core dot */}
+      {/* Core Dot */}
       <div
         ref={dotRef}
         style={{
@@ -119,9 +131,9 @@ export default function ARCursor() {
           borderRadius: 999,
           zIndex: 999999,
           pointerEvents: "none",
-          boxShadow: "0 0 26px rgba(96,165,250,.85)",
+          boxShadow: "0 0 30px rgba(96,165,250,.95)",
           background:
-            "linear-gradient(135deg, rgba(124,58,237,.95), rgba(59,130,246,.9))",
+            "linear-gradient(135deg, rgba(124,58,237,.95), rgba(59,130,246,.95))",
           transition: "opacity 160ms ease",
           opacity: 0,
         }}

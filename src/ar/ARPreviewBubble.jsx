@@ -1,4 +1,3 @@
-// src/ar/ARPreviewBubble.jsx
 import { useEffect, useRef } from "react";
 import useAR from "./useAR";
 
@@ -9,39 +8,55 @@ export default function ARPreviewBubble({
   const ar = useAR();
   const vRef = useRef(null);
 
-  // bind stream when available
+  /* ---------------- bind camera stream ---------------- */
   useEffect(() => {
     const v = vRef.current;
-    const s = ar?.streamRef?.current;
-
     if (!v) return;
 
-    if (!ar.enabled || !s) {
-      try { v.srcObject = null; } catch {}
+    const stream = ar?.streamRef?.current;
+
+    if (!ar?.enabled || !stream) {
+      try {
+        v.pause();
+        v.srcObject = null;
+      } catch {}
       return;
     }
 
     try {
-      v.srcObject = s;
+      v.srcObject = stream;
       v.muted = true;
       v.playsInline = true;
       v.play().catch(() => {});
     } catch {}
-  }, [ar.enabled, ar.hasStream, ar]);
+  }, [ar?.enabled, ar?.hasStream, ar?.streamRef]);
+
+  /* ---------------- status mapping ---------------- */
+  const isRunning = ar?.status === "tracking";
+  const isRequesting = ar?.status === "requesting";
+  const isDenied = ar?.status === "denied";
 
   const dotColor =
-    !ar.enabled ? "rgba(148,163,184,.9)" :
-    ar.status === "running" ? "rgba(34,197,94,.9)" :
-    ar.status === "requesting" ? "rgba(251,191,36,.9)" :
-    ar.status === "denied" ? "rgba(239,68,68,.9)" :
-    "rgba(148,163,184,.9)";
+    !ar?.enabled
+      ? "rgba(148,163,184,.9)"
+      : isRunning
+      ? "rgba(34,197,94,.9)"
+      : isRequesting
+      ? "rgba(251,191,36,.9)"
+      : isDenied
+      ? "rgba(239,68,68,.9)"
+      : "rgba(148,163,184,.9)";
 
   const label =
-    !ar.enabled ? "AR OFF" :
-    ar.status === "running" ? "AR ON" :
-    ar.status === "requesting" ? "Starting..." :
-    ar.status === "denied" ? "Denied" :
-    "AR ON";
+    !ar?.enabled
+      ? "AR OFF"
+      : isRunning
+      ? "AR ON"
+      : isRequesting
+      ? "Starting…"
+      : isDenied
+      ? "Denied"
+      : "AR ON";
 
   return (
     <div
@@ -59,8 +74,8 @@ export default function ARPreviewBubble({
         backdropFilter: "blur(12px)",
       }}
     >
-      {/* video preview */}
-      {ar.enabled && ar.hasStream ? (
+      {/* ---------------- video preview ---------------- */}
+      {ar?.enabled && ar?.hasStream ? (
         <video
           ref={vRef}
           style={{
@@ -89,7 +104,7 @@ export default function ARPreviewBubble({
         </div>
       )}
 
-      {/* glass */}
+      {/* ---------------- glass overlay ---------------- */}
       <div
         style={{
           position: "absolute",
@@ -102,7 +117,7 @@ export default function ARPreviewBubble({
         }}
       />
 
-      {/* button overlay */}
+      {/* ---------------- toggle button ---------------- */}
       <button
         onClick={() => ar.setEnabled?.(!ar.enabled)}
         style={{
@@ -113,7 +128,7 @@ export default function ARPreviewBubble({
           padding: "8px 10px",
           borderRadius: 999,
           border: "1px solid rgba(255,255,255,.18)",
-          background: ar.enabled
+          background: ar?.enabled
             ? "linear-gradient(135deg, rgba(124,58,237,.85), rgba(59,130,246,.65))"
             : "rgba(255,255,255,.08)",
           color: "#fff",
@@ -125,7 +140,9 @@ export default function ARPreviewBubble({
           alignItems: "center",
           gap: 8,
         }}
-        title={`status: ${ar.status} • conf: ${Number(ar.confidence || 0).toFixed(2)}`}
+        title={`status: ${ar?.status} • conf: ${Number(
+          ar?.confidence || 0
+        ).toFixed(2)}`}
       >
         <span
           style={{
