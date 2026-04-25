@@ -1,110 +1,109 @@
 'use client'
-import { useRef, useMemo } from 'react'
+import { useRef, useMemo, useEffect } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { Float } from '@react-three/drei'
 import * as THREE from 'three'
 
-const STRAND_SEGS  = 180   // tube resolution along path
-const BRIDGE_EVERY = 12    // rung every N points
+// Instanced bridges + sphere nodes = 2 draw calls instead of ~50.
 
-function HelixStrand({ curve, color, tubeR = 0.028 }) {
-  const mat = useRef()
-  useFrame(({ clock }) => {
-    if (mat.current) mat.current.emissiveIntensity = 1.8 + Math.sin(clock.getElapsedTime() * 1.1) * 0.6
-  })
-  return (
-    <mesh>
-      <tubeGeometry args={[curve, STRAND_SEGS, tubeR, 8, false]} />
-      <meshStandardMaterial
-        ref={mat}
-        color={color}
-        emissive={color}
-        emissiveIntensity={1.8}
-        metalness={0.8}
-        roughness={0.15}
-      />
-    </mesh>
-  )
-}
+const _dummy = new THREE.Object3D()
+const _up    = new THREE.Vector3(0, 1, 0)
+const _dir   = new THREE.Vector3()
+const _mid   = new THREE.Vector3()
 
-function HelixBridges({ pts1, pts2 }) {
-  const bridges = useMemo(() => {
-    const out = []
-    for (let i = 0; i < pts1.length; i += BRIDGE_EVERY) {
-      const a = pts1[i]
-      const b = pts2[i]
-      if (!a || !b) continue
-      const mid  = new THREE.Vector3().lerpVectors(a, b, 0.5)
-      const len  = a.distanceTo(b)
-      const dir  = new THREE.Vector3().subVectors(b, a).normalize()
-      const quat = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir)
-      out.push({ mid, len, quat, a, b })
-    }
-    return out
-  }, [pts1, pts2])
-
-  return (
-    <>
-      {bridges.map((br, i) => (
-        <group key={i}>
-          {/* Bridge tube */}
-          <mesh position={br.mid} quaternion={br.quat}>
-            <cylinderGeometry args={[0.016, 0.016, br.len, 6]} />
-            <meshStandardMaterial color="#00ff88" emissive="#00ff88" emissiveIntensity={2.4} metalness={0.6} roughness={0.2} />
-          </mesh>
-          {/* Node sphere at A end */}
-          <mesh position={br.a}>
-            <sphereGeometry args={[0.07, 10, 10]} />
-            <meshStandardMaterial color="#00d4ff" emissive="#00d4ff" emissiveIntensity={3.5} />
-          </mesh>
-          {/* Node sphere at B end */}
-          <mesh position={br.b}>
-            <sphereGeometry args={[0.07, 10, 10]} />
-            <meshStandardMaterial color="#9b30ff" emissive="#9b30ff" emissiveIntensity={3.5} />
-          </mesh>
-        </group>
-      ))}
-    </>
-  )
-}
+const TURNS  = 4
+const HEIGHT = 14
+const RADIUS = 1.0
+const N      = 220   // curve points
 
 export default function QuantumHelix({ position = [-7, 1, -16] }) {
-  const group  = useRef()
-  const TURNS  = 5
-  const HEIGHT = 16
-  const RADIUS = 1.05
-  const N      = 300
+  const groupRef    = useRef()
+  const bridgesRef  = useRef()
+  const nodesARef   = useRef()
+  const nodesBRef   = useRef()
 
-  const { curve1, curve2, pts1, pts2 } = useMemo(() => {
+  const { curve1, curve2, pts1, pts2, bridges } = useMemo(() => {
     const pts1 = [], pts2 = []
     for (let i = 0; i <= N; i++) {
-      const t     = i / N
-      const angle = t * Math.PI * 2 * TURNS
-      const y     = t * HEIGHT - HEIGHT / 2
-      pts1.push(new THREE.Vector3( Math.cos(angle) * RADIUS, y,  Math.sin(angle) * RADIUS))
-      pts2.push(new THREE.Vector3(-Math.cos(angle) * RADIUS, y, -Math.sin(angle) * RADIUS))
+      const t = i / N, a = t * Math.PI * 2 * TURNS, y = t * HEIGHT - HEIGHT / 2
+      pts1.push(new THREE.Vector3( Math.cos(a) * RADIUS, y,  Math.sin(a) * RADIUS))
+      pts2.push(new THREE.Vector3(-Math.cos(a) * RADIUS, y, -Math.sin(a) * RADIUS))
+    }
+    const bridges = []
+    for (let i = 0; i <= N; i += 10) {
+      if (pts1[i] && pts2[i]) bridges.push({ a: pts1[i], b: pts2[i] })
     }
     return {
       curve1: new THREE.CatmullRomCurve3(pts1),
       curve2: new THREE.CatmullRomCurve3(pts2),
-      pts1,
-      pts2,
+      pts1, pts2, bridges,
     }
   }, [])
 
+  // Upload instanced bridge matrices
+  useEffect(() => {
+    const bm = bridgesRef.current, na = nodesARef.current, nb = nodesBRef.current
+    if (!bm || !na || !nb) return
+    bridges.forEach(({ a, b }, i) => {
+      _mid.lerpVectors(a, b, 0.5)
+      _dir.subVectors(b, a).normalize()
+      const q = new THREE.Quaternion().setFromUnitVectors(_up, _dir)
+      _dummy.position.copy(_mid)
+      _dummy.quaternion.copy(q)
+      _dummy.scale.set(1, a.distanceTo(b), 1)
+      _dummy.updateMatrix()
+      bm.setMatrixAt(i, _dummy.matrix)
+
+      _dummy.position.copy(a); _dummy.quaternion.identity(); _dummy.scale.setScalar(1)
+      _dummy.updateMatrix(); na.setMatrixAt(i, _dummy.matrix)
+
+      _dummy.position.copy(b); _dummy.updateMatrix(); nb.setMatrixAt(i, _dummy.matrix)
+    })
+    bm.instanceMatrix.needsUpdate = true
+    na.instanceMatrix.needsUpdate = true
+    nb.instanceMatrix.needsUpdate = true
+  }, [bridges])
+
   useFrame(({ clock }) => {
-    if (group.current) {
-      const t = clock.getElapsedTime()
-      group.current.rotation.y = t * 0.12
-    }
+    if (groupRef.current) groupRef.current.rotation.y = clock.getElapsedTime() * 0.11
   })
 
+  const bCount = bridges.length
+
   return (
-    <Float speed={0.25} floatIntensity={0.35} rotationIntensity={0.08}>
-      <group ref={group} position={position}>
-        <HelixStrand curve={curve1} color="#00d4ff" />
-        <HelixStrand curve={curve2} color="#9b30ff" />
-        <HelixBridges pts1={pts1} pts2={pts2} />
+    <Float speed={0.22} floatIntensity={0.3} rotationIntensity={0.06}>
+      <group ref={groupRef} position={position}>
+
+        {/* Strand A */}
+        <mesh>
+          <tubeGeometry args={[curve1, 160, 0.025, 7, false]} />
+          <meshStandardMaterial color="#00d4ff" emissive="#00d4ff" emissiveIntensity={1.6} metalness={0.75} roughness={0.2} />
+        </mesh>
+
+        {/* Strand B */}
+        <mesh>
+          <tubeGeometry args={[curve2, 160, 0.025, 7, false]} />
+          <meshStandardMaterial color="#9b30ff" emissive="#9b30ff" emissiveIntensity={1.6} metalness={0.75} roughness={0.2} />
+        </mesh>
+
+        {/* Bridges (instanced) */}
+        <instancedMesh ref={bridgesRef} args={[undefined, undefined, bCount]}>
+          <cylinderGeometry args={[0.014, 0.014, 1, 5]} />
+          <meshStandardMaterial color="#00ff88" emissive="#00ff88" emissiveIntensity={2.2} metalness={0.6} roughness={0.3} />
+        </instancedMesh>
+
+        {/* Node spheres A (instanced) */}
+        <instancedMesh ref={nodesARef} args={[undefined, undefined, bCount]}>
+          <sphereGeometry args={[0.065, 8, 8]} />
+          <meshStandardMaterial color="#00d4ff" emissive="#00d4ff" emissiveIntensity={3.0} />
+        </instancedMesh>
+
+        {/* Node spheres B (instanced) */}
+        <instancedMesh ref={nodesBRef} args={[undefined, undefined, bCount]}>
+          <sphereGeometry args={[0.065, 8, 8]} />
+          <meshStandardMaterial color="#9b30ff" emissive="#9b30ff" emissiveIntensity={3.0} />
+        </instancedMesh>
+
       </group>
     </Float>
   )

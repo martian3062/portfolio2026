@@ -1,5 +1,5 @@
 'use client'
-import { useRef, useMemo } from 'react'
+import { useRef, useMemo, useEffect } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { MeshTransmissionMaterial, Float } from '@react-three/drei'
 import * as THREE from 'three'
@@ -220,8 +220,11 @@ function DataCore({ mouse }) {
 }
 
 // ─── Neural Network Sphere (contact section) ─────────────────────────────────
+const _nnDummy = new THREE.Object3D()
+
 function NeuralNet({ mouse }) {
-  const group = useRef()
+  const group   = useRef()
+  const instRef = useRef()
 
   const nodes = useMemo(() => {
     const pts = []
@@ -234,6 +237,16 @@ function NeuralNet({ mouse }) {
     }
     return pts
   }, [])
+
+  useEffect(() => {
+    if (!instRef.current) return
+    nodes.forEach((pos, i) => {
+      _nnDummy.position.copy(pos)
+      _nnDummy.updateMatrix()
+      instRef.current.setMatrixAt(i, _nnDummy.matrix)
+    })
+    instRef.current.instanceMatrix.needsUpdate = true
+  }, [nodes])
 
   useFrame(({ clock }) => {
     const t   = clock.getElapsedTime()
@@ -249,16 +262,10 @@ function NeuralNet({ mouse }) {
   return (
     <Float speed={0.35} floatIntensity={0.3}>
       <group ref={group} position={[0, 1.5, -5]}>
-        {nodes.map((pos, i) => (
-          <mesh key={i} position={pos}>
-            <sphereGeometry args={[0.065, 8, 8]} />
-            <meshStandardMaterial
-              color="#00ff88"
-              emissive="#00ff88"
-              emissiveIntensity={3}
-            />
-          </mesh>
-        ))}
+        <instancedMesh ref={instRef} args={[undefined, undefined, 24]}>
+          <sphereGeometry args={[0.065, 8, 8]} />
+          <meshStandardMaterial color="#00ff88" emissive="#00ff88" emissiveIntensity={3} />
+        </instancedMesh>
       </group>
     </Float>
   )

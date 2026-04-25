@@ -1,14 +1,13 @@
 'use client'
 import { useRef, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { useTexture } from '@react-three/drei'
 import * as THREE from 'three'
 
-// Full-sphere skybox — wraps around the entire scene.
-// Combines a real star-map texture (NASA Tycho-2) with a procedural
-// nebula overlay so colours match the portfolio palette.
+// Full-sphere procedural skybox.
+// No external texture dependency — purely GLSL.
+// Generates realistic star distribution + nebula gas on the GPU.
 
-const nebVert = `
+const VERT = /* glsl */`
 varying vec3 vDir;
 void main() {
   vDir = normalize(position);
@@ -16,102 +15,106 @@ void main() {
 }
 `
 
-const nebFrag = `
+const FRAG = /* glsl */`
 uniform float uTime;
-uniform sampler2D uStarTex;
-varying vec3 vDir;
+varying vec3  vDir;
 
-float hash(vec2 p) {
-  p = fract(p * vec2(234.34, 435.345));
-  p += dot(p, p + 34.23);
-  return fract(p.x * p.y);
+// ── hashes ──────────────────────────────────────────────────
+float hash11(float n) { return fract(sin(n)*43758.5453); }
+float hash21(vec2  p) { return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }
+vec2  hash22(vec2  p) {
+  p = vec2(dot(p,vec2(127.1,311.7)),dot(p,vec2(269.5,183.3)));
+  return fract(sin(p)*43758.5453);
 }
+
+// ── smooth noise ─────────────────────────────────────────────
 float vnoise(vec2 p) {
-  vec2 i=floor(p),f=fract(p);
-  f=f*f*(3.0-2.0*f);
-  return mix(mix(hash(i),hash(i+vec2(1,0)),f.x),
-             mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),f.x),f.y);
+  vec2 i=floor(p),f=fract(p); f=f*f*(3.0-2.0*f);
+  return mix(mix(hash21(i),hash21(i+vec2(1,0)),f.x),
+             mix(hash21(i+vec2(0,1)),hash21(i+vec2(1,1)),f.x),f.y);
 }
-float fbm(vec2 p) {
+float fbm(vec2 p, int oct) {
   float v=0.0,a=0.5;
-  for(int i=0;i<6;i++){v+=a*vnoise(p);p=p*2.1+vec2(1.7,9.2);a*=0.5;}
+  for(int i=0;i<8;i++){
+    if(i>=oct) break;
+    v+=a*vnoise(p); p=p*2.1+vec2(1.7,9.2); a*=0.5;
+  }
   return v;
 }
 
-// Spherical UV from direction
+// ── spherical coords ─────────────────────────────────────────
 vec2 sphereUV(vec3 d) {
-  float lon = atan(d.z, d.x) / (2.0 * 3.14159265) + 0.5;
-  float lat = asin(clamp(d.y, -1.0, 1.0)) / 3.14159265 + 0.5;
-  return vec2(lon, lat);
+  return vec2(
+    atan(d.z, d.x) / (2.0*3.14159265) + 0.5,
+    asin(clamp(d.y,-1.0,1.0)) / 3.14159265 + 0.5
+  );
+}
+
+// ── star field: Voronoi-based discrete stars ─────────────────
+float stars(vec2 uv, float density, float size) {
+  vec2  cell   = floor(uv * density);
+  vec2  offset = hash22(cell) - 0.5;
+  vec2  frac   = fract(uv * density) - 0.5 - offset;
+  float dist   = length(frac);
+  float b      = hash21(cell);             // brightness bucket
+  float lum    = pow(b, 6.0);             // only the brightest are visible
+  float twinkle= 0.85 + 0.15*sin(uTime*1.8 + b*12.57);
+  return smoothstep(size, 0.0, dist) * lum * twinkle;
 }
 
 void main() {
-  vec3  dir = normalize(vDir);
-  vec2  uv  = sphereUV(dir);
+  vec3 dir = normalize(vDir);
+  vec2 uv  = sphereUV(dir);
 
-  // ── Real star-map texture ────────────────────────────────
-  vec3  stars = texture2D(uStarTex, uv).rgb;
-  // Boost faint stars, crush near-black sky to pure black
-  stars  = pow(stars, vec3(0.45));
-  stars *= smoothstep(0.08, 0.35, length(stars));
+  // ── three star layers (different densities/sizes) ──────────
+  float s1 = stars(uv,  90.0, 0.008) * 0.85;
+  float s2 = stars(uv, 200.0, 0.005) * 0.55;
+  float s3 = stars(uv, 500.0, 0.003) * 0.28;
+  vec3  starColor = vec3(s1 + s2 + s3);
 
-  // ── Procedural nebula gas ────────────────────────────────
-  vec2  q = vec2(fbm(uv * 1.8 + uTime * 0.006),
-                 fbm(uv * 1.8 + vec2(1.7, 9.2)));
-  float n = fbm(uv * 1.4 + q * 0.55 + uTime * 0.004);
-  float n2= fbm(uv * 3.2 - vec2(q.y,q.x) - uTime*0.003);
+  // Colour temperature variation per star
+  float ct = hash21(floor(uv * 90.0));
+  starColor *= mix(vec3(0.95,0.85,0.7), vec3(0.75,0.88,1.0), ct);
 
-  // Very dark gas clouds — space is NOT bright
-  vec3 deep   = vec3(0.004, 0.003, 0.010);
-  vec3 nebA   = vec3(0.010, 0.003, 0.028); // faint purple gas
-  vec3 nebB   = vec3(0.0,   0.006, 0.018); // faint teal gas
+  // ── nebula gas (very dark FBM clouds) ─────────────────────
+  vec2 q = vec2(fbm(uv*1.6+uTime*0.004,5),
+                fbm(uv*1.6+vec2(1.7,9.2),5));
+  float n  = fbm(uv*1.3 + q*0.5 + uTime*0.003, 6);
+  float n2 = fbm(uv*2.8 - vec2(q.y,q.x) - uTime*0.002, 5);
 
-  vec3 nebula = mix(deep, nebA, smoothstep(0.42, 0.72, n)  * 0.6);
-       nebula = mix(nebula, nebB, smoothstep(0.55, 0.85, n2) * 0.4);
+  vec3 deep    = vec3(0.003, 0.002, 0.008);   // near-black void
+  vec3 nebPurp = vec3(0.008, 0.002, 0.020);   // faint purple gas
+  vec3 nebTeal = vec3(0.000, 0.005, 0.015);   // faint teal gas
+  vec3 nebAmb  = vec3(0.012, 0.006, 0.002);   // very faint amber (near BH side)
 
-  // ── Milky Way band ───────────────────────────────────────
-  float band     = exp(-pow(dir.y * 2.8, 2.0)) * 0.06;
-  float bandNoise= fbm(uv * 4.0 + vec2(uTime * 0.002));
-  vec3  mwCol    = vec3(0.018, 0.012, 0.028) * (band * (0.6 + 0.4 * bandNoise));
+  vec3 neb = mix(deep,    nebPurp, smoothstep(0.40,0.72,n)  * 0.6);
+       neb = mix(neb,     nebTeal, smoothstep(0.55,0.85,n2) * 0.35);
+       neb = mix(neb,     nebAmb,  smoothstep(0.0, 1.0, 1.0-abs(dir.y)) * 0.04);
 
-  // ── Combine ──────────────────────────────────────────────
-  vec3 col = nebula + mwCol + stars * 0.85;
+  // ── Milky Way band ─────────────────────────────────────────
+  float band = exp(-pow(dir.y*2.4,2.0));
+  float bNoise = fbm(uv*3.5+vec2(0.2),4)*0.5+0.5;
+  neb += vec3(0.010,0.006,0.018) * band * bNoise * 0.7;
 
+  // ── composite ─────────────────────────────────────────────
+  vec3 col = neb + starColor * 0.90;
   gl_FragColor = vec4(col, 1.0);
 }
 `
 
 export default function NebulaBackground() {
-  const meshRef  = useRef()
-  const uniforms = useMemo(() => ({
-    uTime:    { value: 0 },
-    uStarTex: { value: null },
-  }), [])
+  const ref  = useRef()
+  const uni  = useMemo(() => ({ uTime: { value: 0 } }), [])
 
-  // NASA Tycho-2 star catalogue map (public domain, hosted on GitHub raw)
-  // Fallback to a procedural starfield if texture fails to load
-  const starTexUrl = 'https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/2294472375_24a3b8ef46_o.jpg'
-
-  const tex = useTexture(starTexUrl)
-  useMemo(() => {
-    if (tex) {
-      tex.wrapS = tex.wrapT = THREE.RepeatWrapping
-      tex.colorSpace = THREE.LinearSRGBColorSpace
-      uniforms.uStarTex.value = tex
-    }
-  }, [tex])
-
-  useFrame(({ clock }) => {
-    uniforms.uTime.value = clock.getElapsedTime()
-  })
+  useFrame(({ clock }) => { uni.uTime.value = clock.getElapsedTime() })
 
   return (
-    <mesh ref={meshRef} scale={[-1, 1, 1]}>
-      <sphereGeometry args={[92, 64, 64]} />
+    <mesh ref={ref}>
+      <sphereGeometry args={[90, 64, 64]} />
       <shaderMaterial
-        vertexShader={nebVert}
-        fragmentShader={nebFrag}
-        uniforms={uniforms}
+        vertexShader={VERT}
+        fragmentShader={FRAG}
+        uniforms={uni}
         side={THREE.BackSide}
         depthWrite={false}
       />

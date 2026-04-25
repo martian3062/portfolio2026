@@ -1,170 +1,302 @@
 'use client'
-import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import { Stars } from '@react-three/drei'
+
+import { Canvas, useFrame, useLoader } from '@react-three/fiber'
+import { Html, Stars } from '@react-three/drei'
 import { EffectComposer, Bloom, ChromaticAberration, Vignette } from '@react-three/postprocessing'
 import { BlendFunction } from 'postprocessing'
-import { Suspense, useRef, useState, useEffect, useCallback } from 'react'
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
 import NebulaBackground from '../canvas/NebulaBackground'
-import Planet from './Planet'
 import GameHUD from './GameHUD'
 
-// ─── Planet data (each = one section of your life) ────────────────────────────
-const PLANETS = [
+const DISTRICTS = [
   {
     id: 'education',
-    name: 'ACADEMIA',
-    subtitle: '// EDUCATION',
-    position: [-28, 7, -75],
-    radius: 4.5,
-    color: '#0088ff',
-    atmosphereColor: '#002299',
-    rings: false,
+    name: 'EDU TOWERS',
+    subtitle: '// EDUCATION BLOCK',
+    position: [-28, 0, -34],
+    size: [9, 24, 9],
+    color: '#00d4ff',
+    accent: '#ffd166',
     items: [
-      { t: 'Chandigarh University', n: 'B.E. Computer Science · 2022–2026 · CGPA 7.7' },
-      { t: 'IGNOU',                 n: 'B.Sc. General · Distance Program' },
-      { t: 'Certifications',        n: 'Microsoft AI · NVIDIA Deep Learning · Coursera' },
+      { t: 'Chandigarh University', n: 'B.E. Computer Science, 2022-2026, CGPA 7.7' },
+      { t: 'IGNOU', n: 'B.Sc. General, distance program' },
+      { t: 'Certifications', n: 'Microsoft AI, NVIDIA Deep Learning, Coursera' },
+    ],
+  },
+  {
+    id: 'work',
+    name: '4BASECARE HQ',
+    subtitle: '// EXPERIENCE',
+    position: [24, 0, -52],
+    size: [12, 30, 12],
+    color: '#ff4f8b',
+    accent: '#00ff88',
+    items: [
+      { t: 'Data Science Intern', n: 'Cancer model training with DINO and CV pipelines' },
+      { t: 'Clinical AI Dashboards', n: 'Vector databases, guardrails, A2A/MCP, GCP' },
+      { t: 'Automation', n: 'Applied ML systems for real workflows' },
     ],
   },
   {
     id: 'projects',
-    name: 'FORGE',
-    subtitle: '// MISSION LOG',
-    position: [32, -6, -140],
-    radius: 3.6,
-    color: '#ff8800',
-    atmosphereColor: '#aa2200',
-    rings: true,
+    name: 'PROJECT AVE',
+    subtitle: '// BUILDS',
+    position: [-18, 0, -92],
+    size: [13, 22, 10],
+    color: '#ff8a00',
+    accent: '#7c5cff',
     items: [
-      { t: 'MedGenie 3.0',    n: 'Healthcare AI — React, Django, JWT, LLMs, forecasting' },
-      { t: 'Telemedicine',    n: 'WebRTC live sessions + real-time clinical dashboards' },
-      { t: 'Gen3 DeFi Agent', n: 'Web3 automation, wallet flows, WebSocket sim engine' },
+      { t: 'MedGenie 3.0', n: 'Healthcare AI with React, Django, JWT, LLMs' },
+      { t: 'Telemedicine', n: 'WebRTC sessions and clinical dashboards' },
+      { t: 'Gen3 DeFi Agent', n: 'Wallet flows, WebSockets, simulation engine' },
     ],
   },
   {
     id: 'research',
-    name: 'NEXUS',
+    name: 'IEEE SKYLAB',
     subtitle: '// RESEARCH',
-    position: [-22, 13, -210],
-    radius: 3.1,
-    color: '#00d4ff',
-    atmosphereColor: '#003366',
-    rings: false,
+    position: [29, 0, -126],
+    size: [10, 27, 10],
+    color: '#a66cff',
+    accent: '#00d4ff',
     items: [
-      { t: 'IEEE ICWITE 2025',  n: 'Machine Learning Approaches in DNA Analysis' },
-      { t: 'IEEE PUNECON 2025', n: 'LLMs in multilingual & low-resource contexts' },
-      { t: 'IEEE DELCON 2025',  n: 'Wavelet terrain generation + epigenetic modification' },
+      { t: 'DNA Analysis', n: 'Machine learning approaches in genomics' },
+      { t: 'Low-resource LLMs', n: 'Multilingual model evaluation and compression' },
+      { t: 'AAA Game Terrain', n: 'Wavelet-based terrain generation research' },
     ],
   },
   {
     id: 'skills',
-    name: 'ARSENAL',
-    subtitle: '// TECH STACK',
-    position: [36, -11, -278],
-    radius: 3.3,
+    name: 'TECH GARAGE',
+    subtitle: '// SKILLS',
+    position: [-26, 0, -166],
+    size: [14, 20, 12],
     color: '#00ff88',
-    atmosphereColor: '#003322',
-    rings: false,
+    accent: '#ffef5a',
     items: [
-      { t: 'Core',     n: 'Python · JavaScript · Django · DRF · React · WebSockets' },
-      { t: 'Platform', n: 'Docker · AWS · Postgres · SQLite · MySQL · Git' },
-      { t: 'AI / ML',  n: 'LLM tooling · Computer Vision · Forecasting models' },
+      { t: 'Core', n: 'Python, JavaScript, Django, DRF, React, WebSockets' },
+      { t: 'Platform', n: 'Docker, AWS, GCP, Postgres, SQLite, MySQL, Git' },
+      { t: 'AI / ML', n: 'LLM tooling, computer vision, forecasting models' },
     ],
   },
   {
     id: 'contact',
-    name: 'BEACON',
-    subtitle: '// OPEN CHANNEL',
-    position: [0, 5, -345],
-    radius: 4.2,
-    color: '#9b30ff',
-    atmosphereColor: '#330066',
-    rings: false,
+    name: 'SIGNAL PIER',
+    subtitle: '// CONTACT',
+    position: [0, 0, -210],
+    size: [15, 18, 12],
+    color: '#5cf2ff',
+    accent: '#ff4f8b',
     items: [
-      { t: 'Email',    n: 'sandhupardeep300@gmail.com' },
+      { t: 'Email', n: 'sandhupardeep300@gmail.com' },
       { t: 'LinkedIn', n: 'linkedin.com/in/pardeep-singh' },
-      { t: 'GitHub',   n: 'github.com/pardeepsandhu' },
+      { t: 'GitHub', n: 'github.com/pardeepsandhu' },
     ],
   },
 ]
 
-// ─── Player movement + look controls (inside Canvas) ─────────────────────────
-function GameControls({ onNearPlanet, externalKeys, mouseDelta }) {
-  const { camera } = useThree()
-  const vel      = useRef(new THREE.Vector3())
-  const keys     = useRef({})
-  const yaw      = useRef(0)
-  const pitch    = useRef(0)
-  const locked   = useRef(false)
+function SpaceRoad() {
+  const grid = useRef()
+
+  useFrame(({ clock }) => {
+    if (grid.current) grid.current.material.opacity = 0.22 + Math.sin(clock.elapsedTime * 2) * 0.04
+  })
+
+  return (
+    <group>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.04, -112]}>
+        <planeGeometry args={[86, 270]} />
+        <meshStandardMaterial color="#050711" roughness={0.4} metalness={0.35} />
+      </mesh>
+      <gridHelper ref={grid} args={[270, 54, '#00d4ff', '#24345f']} position={[0, 0.02, -112]} />
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.04, -112]}>
+        <planeGeometry args={[8, 270]} />
+        <meshBasicMaterial color="#ffd166" transparent opacity={0.16} side={THREE.DoubleSide} />
+      </mesh>
+      {[-42, 42].map(x => (
+        <mesh key={x} rotation={[-Math.PI / 2, 0, 0]} position={[x, 0.05, -112]}>
+          <planeGeometry args={[2, 270]} />
+          <meshBasicMaterial color="#ff4f8b" transparent opacity={0.28} side={THREE.DoubleSide} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+function PortfolioBuilding({ district }) {
+  const group = useRef()
+  const [w, h, d] = district.size
+
+  useFrame(({ clock }) => {
+    if (group.current) group.current.position.y = Math.sin(clock.elapsedTime * 0.7 + district.position[0]) * 0.12
+  })
+
+  return (
+    <group ref={group} position={district.position}>
+      <mesh position={[0, h / 2, 0]}>
+        <boxGeometry args={[w, h, d]} />
+        <meshStandardMaterial color="#070b1e" emissive={district.color} emissiveIntensity={0.18} metalness={0.6} roughness={0.26} />
+      </mesh>
+
+      {[-0.34, 0, 0.34].map((x, index) => (
+        <mesh key={x} position={[x * w, h + 2 + index * 0.9, 0]}>
+          <boxGeometry args={[w * 0.22, 4 + index, d * 0.28]} />
+          <meshStandardMaterial color={district.color} emissive={district.color} emissiveIntensity={1.2} />
+        </mesh>
+      ))}
+
+      {Array.from({ length: 5 }).map((_, row) =>
+        Array.from({ length: 3 }).map((__, col) => (
+          <mesh key={`${row}-${col}`} position={[-w * 0.32 + col * w * 0.32, 5 + row * 3.7, d / 2 + 0.05]}>
+            <boxGeometry args={[w * 0.12, 1.1, 0.12]} />
+            <meshBasicMaterial color={row % 2 ? district.color : district.accent} transparent opacity={0.82} />
+          </mesh>
+        ))
+      )}
+
+      <pointLight color={district.color} intensity={3.2} distance={42} />
+
+      <Html position={[0, h + 8, 0]} center distanceFactor={34} style={{ pointerEvents: 'none', userSelect: 'none' }}>
+        <div className="planet-label building-label">
+          <p className="planet-label-name" style={{ color: district.accent }}>{district.name}</p>
+          <p className="planet-label-sub">{district.subtitle}</p>
+        </div>
+      </Html>
+    </group>
+  )
+}
+
+function GTAAvatar({ playerRef }) {
+  const texture = useLoader(THREE.TextureLoader, '/pardeep-space.jpg')
+  const body = useRef()
+
+  useFrame(({ clock }) => {
+    if (body.current) body.current.rotation.z = Math.sin(clock.elapsedTime * 7) * 0.04
+  })
+
+  return (
+    <group ref={playerRef} position={[0, 0, 12]}>
+      <group ref={body}>
+        <mesh position={[0, 2.95, 0]}>
+          <sphereGeometry args={[0.58, 28, 28]} />
+          <meshStandardMaterial color="#d99b72" roughness={0.55} />
+        </mesh>
+        <mesh position={[0, 2.35, -0.02]}>
+          <boxGeometry args={[1.15, 1.28, 0.48]} />
+          <meshStandardMaterial color="#111827" emissive="#00d4ff" emissiveIntensity={0.16} roughness={0.42} />
+        </mesh>
+        <mesh position={[0, 3.42, 0.08]}>
+          <boxGeometry args={[1.12, 0.22, 0.82]} />
+          <meshStandardMaterial color="#2b174c" emissive="#a66cff" emissiveIntensity={0.35} />
+        </mesh>
+        <mesh position={[-0.72, 2.3, 0]} rotation={[0, 0, 0.18]}>
+          <boxGeometry args={[0.28, 1.2, 0.28]} />
+          <meshStandardMaterial color="#ffd166" roughness={0.55} />
+        </mesh>
+        <mesh position={[0.72, 2.3, 0]} rotation={[0, 0, -0.18]}>
+          <boxGeometry args={[0.28, 1.2, 0.28]} />
+          <meshStandardMaterial color="#ffd166" roughness={0.55} />
+        </mesh>
+        <mesh position={[-0.28, 1.35, 0]}>
+          <boxGeometry args={[0.32, 1.35, 0.32]} />
+          <meshStandardMaterial color="#2b2f3a" />
+        </mesh>
+        <mesh position={[0.28, 1.35, 0]}>
+          <boxGeometry args={[0.32, 1.35, 0.32]} />
+          <meshStandardMaterial color="#2b2f3a" />
+        </mesh>
+      </group>
+
+      <mesh position={[0, 2.6, 0.29]}>
+        <planeGeometry args={[0.68, 0.9]} />
+        <meshBasicMaterial map={texture} transparent opacity={0.9} />
+      </mesh>
+      <sprite position={[0, 4.25, 0]} scale={[1.25, 1.85, 1]}>
+        <spriteMaterial map={texture} transparent opacity={0.82} depthWrite={false} />
+      </sprite>
+
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.04, 0]}>
+        <ringGeometry args={[1.2, 1.8, 48]} />
+        <meshBasicMaterial color="#00d4ff" transparent opacity={0.45} side={THREE.DoubleSide} />
+      </mesh>
+      <pointLight color="#00d4ff" intensity={1.8} distance={12} />
+    </group>
+  )
+}
+
+function GameControls({ playerRef, onNearPlanet, externalKeys, mouseDelta }) {
+  const keys = useRef({})
+  const yaw = useRef(0)
+  const velocity = useRef(new THREE.Vector3())
   const hudTimer = useRef(0)
-  const nearRef  = useRef(null)
+  const nearRef = useRef(null)
 
   useEffect(() => {
-    camera.position.set(0, 2, 22)
-    camera.rotation.order = 'YXZ'
-
-    const down     = e  => { keys.current[e.code] = true }
-    const up       = e  => { keys.current[e.code] = false }
-    const onMove   = e  => {
-      if (!locked.current) return
-      mouseDelta.current.x += e.movementX * 0.0016
-      mouseDelta.current.y += e.movementY * 0.0016
+    const down = e => { keys.current[e.code] = true }
+    const up = e => { keys.current[e.code] = false }
+    const move = e => {
+      if (!document.pointerLockElement) return
+      mouseDelta.current.x += e.movementX * 0.0022
     }
-    const onLockCh = () => { locked.current = !!document.pointerLockElement }
 
     window.addEventListener('keydown', down)
-    window.addEventListener('keyup',   up)
-    document.addEventListener('mousemove',         onMove)
-    document.addEventListener('pointerlockchange', onLockCh)
-
+    window.addEventListener('keyup', up)
+    document.addEventListener('mousemove', move)
     return () => {
       window.removeEventListener('keydown', down)
-      window.removeEventListener('keyup',   up)
-      document.removeEventListener('mousemove',         onMove)
-      document.removeEventListener('pointerlockchange', onLockCh)
+      window.removeEventListener('keyup', up)
+      document.removeEventListener('mousemove', move)
     }
-  }, [camera, mouseDelta])
+  }, [mouseDelta])
 
-  useFrame((_, dt) => {
-    // ── Mouse look ──────────────────────────────────────────────────────────
-    yaw.current   -= mouseDelta.current.x
-    pitch.current -= mouseDelta.current.y
-    pitch.current  = Math.max(-1.3, Math.min(1.3, pitch.current))
+  useFrame(({ camera }, dt) => {
+    const player = playerRef.current
+    if (!player) return
+
+    yaw.current -= mouseDelta.current.x
     mouseDelta.current.x = 0
-    mouseDelta.current.y = 0
-    camera.rotation.y = yaw.current
-    camera.rotation.x = pitch.current
 
-    // ── Movement ────────────────────────────────────────────────────────────
-    const k   = { ...keys.current, ...externalKeys.current }
-    const spd = k['ShiftLeft'] ? 32 : 15
-    const dir = new THREE.Vector3()
-    if (k['KeyW'] || k['ArrowUp'])    dir.z -= 1
-    if (k['KeyS'] || k['ArrowDown'])  dir.z += 1
-    if (k['KeyA'] || k['ArrowLeft'])  dir.x -= 1
-    if (k['KeyD'] || k['ArrowRight']) dir.x += 1
-    if (k['Space'])       dir.y += 0.6
-    if (k['ControlLeft']) dir.y -= 0.6
+    const k = { ...keys.current, ...externalKeys.current }
+    const input = new THREE.Vector3(
+      (k.KeyD || k.ArrowRight ? 1 : 0) - (k.KeyA || k.ArrowLeft ? 1 : 0),
+      0,
+      (k.KeyS || k.ArrowDown ? 1 : 0) - (k.KeyW || k.ArrowUp ? 1 : 0)
+    )
+    const speed = k.ShiftLeft ? 23 : 12
 
-    if (dir.length() > 0) {
-      dir.normalize().multiplyScalar(spd * dt * 9)
-      dir.applyQuaternion(camera.quaternion)
-      vel.current.add(dir)
+    if (input.length() > 0) {
+      input.normalize().applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw.current)
+      velocity.current.addScaledVector(input, speed * dt * 7)
     }
-    // Cap + damp
-    if (vel.current.length() > spd) vel.current.setLength(spd)
-    vel.current.multiplyScalar(0.87)
-    camera.position.addScaledVector(vel.current, dt)
 
-    // ── Proximity check (throttled ~8fps for React state) ──────────────────
+    velocity.current.multiplyScalar(0.84)
+    if (velocity.current.length() > speed) velocity.current.setLength(speed)
+    player.position.addScaledVector(velocity.current, dt)
+    player.position.x = THREE.MathUtils.clamp(player.position.x, -38, 38)
+    player.position.z = THREE.MathUtils.clamp(player.position.z, -224, 22)
+    player.rotation.y = yaw.current
+
+    const cameraTarget = new THREE.Vector3(
+      player.position.x + Math.sin(yaw.current) * 12,
+      player.position.y + 7.4,
+      player.position.z + Math.cos(yaw.current) * 12
+    )
+    camera.position.lerp(cameraTarget, 1 - Math.pow(0.001, dt))
+    camera.lookAt(player.position.x, player.position.y + 2.2, player.position.z)
+
     hudTimer.current += dt
-    if (hudTimer.current < 0.12) return
+    if (hudTimer.current < 0.1) return
     hudTimer.current = 0
 
-    let nearest = null, nearDist = Infinity
-    PLANETS.forEach(p => {
-      const d = camera.position.distanceTo(new THREE.Vector3(...p.position))
-      if (d < p.radius + 22 && d < nearDist) { nearest = p; nearDist = d }
+    let nearest = null
+    let nearDist = Infinity
+    DISTRICTS.forEach(district => {
+      const dist = player.position.distanceTo(new THREE.Vector3(...district.position))
+      if (dist < 25 && dist < nearDist) {
+        nearest = district
+        nearDist = dist
+      }
     })
 
     if (nearest?.id !== nearRef.current?.id) {
@@ -181,50 +313,41 @@ function GameControls({ onNearPlanet, externalKeys, mouseDelta }) {
   return null
 }
 
-// ─── Scene (inside Canvas) ────────────────────────────────────────────────────
 function GameScene({ onNearPlanet, externalKeys, mouseDelta }) {
+  const playerRef = useRef()
+
   return (
     <>
       <NebulaBackground />
-      <Stars radius={400} depth={150} count={12000} factor={6} saturation={0.3} fade speed={0.25} />
+      <Stars radius={420} depth={180} count={15000} factor={7} saturation={0.35} fade speed={0.35} />
 
-      <ambientLight intensity={0.04} />
-      <hemisphereLight skyColor="#000a22" groundColor="#0a0005" intensity={0.45} />
+      <ambientLight intensity={0.18} />
+      <hemisphereLight skyColor="#071436" groundColor="#090014" intensity={0.55} />
+      <directionalLight position={[18, 36, 18]} intensity={1.15} color="#ffffff" />
 
-      <GameControls
-        onNearPlanet={onNearPlanet}
-        externalKeys={externalKeys}
-        mouseDelta={mouseDelta}
-      />
-
-      {PLANETS.map(p => <Planet key={p.id} {...p} />)}
+      <SpaceRoad />
+      {DISTRICTS.map(district => <PortfolioBuilding key={district.id} district={district} />)}
+      <GTAAvatar playerRef={playerRef} />
+      <GameControls playerRef={playerRef} onNearPlanet={onNearPlanet} externalKeys={externalKeys} mouseDelta={mouseDelta} />
 
       <EffectComposer>
-        <Bloom
-          intensity={2.4}
-          luminanceThreshold={0.12}
-          luminanceSmoothing={0.78}
-          radius={0.95}
-          mipmapBlur
-        />
-        <ChromaticAberration blendFunction={BlendFunction.NORMAL} offset={[0.0022, 0.0022]} />
-        <Vignette eskil={false} offset={0.1} darkness={0.92} />
+        <Bloom intensity={2.9} luminanceThreshold={0.1} luminanceSmoothing={0.78} radius={0.95} mipmapBlur />
+        <ChromaticAberration blendFunction={BlendFunction.NORMAL} offset={[0.0024, 0.0024]} />
+        <Vignette eskil={false} offset={0.08} darkness={0.9} />
       </EffectComposer>
     </>
   )
 }
 
-// ─── Main export ──────────────────────────────────────────────────────────────
 export default function SpaceGame({ onExit }) {
   const [nearPlanet, setNearPlanet] = useState(null)
-  const [nearDist,   setNearDist]   = useState(Infinity)
-  const [locked,     setLocked]     = useState(false)
+  const [nearDist, setNearDist] = useState(Infinity)
+  const [locked, setLocked] = useState(false)
 
-  const canvasEl    = useRef(null)
+  const canvasEl = useRef(null)
   const externalKeys = useRef({})
-  const mouseDelta  = useRef({ x: 0, y: 0 })
+  const mouseDelta = useRef({ x: 0, y: 0 })
 
-  // Touch-look: swipe on the right half of the screen
   useEffect(() => {
     let last = null
     const onStart = e => {
@@ -235,59 +358,52 @@ export default function SpaceGame({ onExit }) {
       const t = e.touches[0]
       if (t.clientX > window.innerWidth * 0.45 && last) {
         mouseDelta.current.x += (t.clientX - last.x) * 0.006
-        mouseDelta.current.y += (t.clientY - last.y) * 0.006
         last = { x: t.clientX, y: t.clientY }
       }
     }
     const onEnd = () => { last = null }
     window.addEventListener('touchstart', onStart, { passive: true })
-    window.addEventListener('touchmove',  onMove,  { passive: true })
-    window.addEventListener('touchend',   onEnd,   { passive: true })
+    window.addEventListener('touchmove', onMove, { passive: true })
+    window.addEventListener('touchend', onEnd, { passive: true })
     return () => {
       window.removeEventListener('touchstart', onStart)
-      window.removeEventListener('touchmove',  onMove)
-      window.removeEventListener('touchend',   onEnd)
+      window.removeEventListener('touchmove', onMove)
+      window.removeEventListener('touchend', onEnd)
     }
   }, [])
 
-  // Pointer-lock state sync
   useEffect(() => {
-    const ch = () => setLocked(!!document.pointerLockElement)
-    document.addEventListener('pointerlockchange', ch)
-    return () => document.removeEventListener('pointerlockchange', ch)
+    const change = () => setLocked(!!document.pointerLockElement)
+    document.addEventListener('pointerlockchange', change)
+    return () => document.removeEventListener('pointerlockchange', change)
   }, [])
 
-  // Release lock on exit
-  useEffect(() => {
-    return () => {
-      if (document.pointerLockElement) document.exitPointerLock()
-    }
+  useEffect(() => () => {
+    if (document.pointerLockElement) document.exitPointerLock()
   }, [])
 
-  const handleNear = useCallback((p, d) => {
-    setNearPlanet(p ?? null)
-    setNearDist(d  ?? Infinity)
+  const handleNear = useCallback((district, distance) => {
+    setNearPlanet(district ?? null)
+    setNearDist(distance ?? Infinity)
   }, [])
 
   const requestLock = useCallback(() => {
     canvasEl.current?.requestPointerLock()
   }, [])
 
+  const districts = useMemo(() => DISTRICTS, [])
+
   return (
     <div className="game-wrapper">
       <Canvas
-        camera={{ position: [0, 2, 22], fov: 72 }}
+        camera={{ position: [0, 7, 28], fov: 68 }}
         gl={{ antialias: true, powerPreference: 'high-performance' }}
         dpr={[1, 1.5]}
         onClick={requestLock}
         onCreated={({ gl }) => { canvasEl.current = gl.domElement }}
       >
         <Suspense fallback={null}>
-          <GameScene
-            onNearPlanet={handleNear}
-            externalKeys={externalKeys}
-            mouseDelta={mouseDelta}
-          />
+          <GameScene onNearPlanet={handleNear} externalKeys={externalKeys} mouseDelta={mouseDelta} />
         </Suspense>
       </Canvas>
 
@@ -298,7 +414,7 @@ export default function SpaceGame({ onExit }) {
         onExit={onExit}
         onLock={requestLock}
         externalKeys={externalKeys}
-        planets={PLANETS}
+        planets={districts}
       />
     </div>
   )
