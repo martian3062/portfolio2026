@@ -25,9 +25,6 @@ export default function Layout() {
         <Link style={{ color: "#9ddcff", textDecoration: "none" }} to="/pardeep">
           Pardeep
         </Link>
-        <Link style={{ color: "#9ddcff", textDecoration: "none" }} to="/karanvir">
-          Karanvir
-        </Link>
       </div>
 
       {/* Page content */}

@@ -21,23 +21,7 @@ const SECTIONS = [
     route: "/pardeep",
     video: "/mars_pardeep.mp4",
     subtitle: "Full Stack • AI • Automation",
-    align: "right", // requested
-  },
-  {
-    key: "karanvir",
-    name: "Karanvir",
-    route: "/karanvir",
-    video: "/introkaran_blurred.mp4",
-    subtitle: "Data Engineering • Gen AI • Cloud",
-    align: "left", // requested
-  },
-  {
-    key: "deepanshu",
-    name: "Deepanshu",
-    route: "/deepanshu",
-    video: "/batman.mp4",
-    subtitle: "Engineering • Product • Web3",
-    align: "center",
+    align: "right",
   },
 ];
 
@@ -46,8 +30,6 @@ export default function App() {
 
   // bubble refs
   const pRef = useRef(null);
-  const kRef = useRef(null);
-  const dRef = useRef(null);
 
   // section refs
   const sectionRefs = useRef([]);
@@ -55,8 +37,6 @@ export default function App() {
   const bubbleRefs = useMemo(
     () => ({
       pardeep: pRef,
-      karanvir: kRef,
-      deepanshu: dRef,
     }),
     []
   );
@@ -64,8 +44,6 @@ export default function App() {
   const routes = useMemo(
     () => ({
       pardeep: "/pardeep",
-      karanvir: "/karanvir",
-      deepanshu: "/deepanshu",
     }),
     []
   );
@@ -110,8 +88,6 @@ export default function App() {
     };
 
     floatify(pRef.current, { y: -12, x: -7, r: -2.2, d1: 3.1, d2: 2.7 });
-    floatify(kRef.current, { y: 14, x: 10, r: 2.6, d1: 3.4, d2: 2.6 });
-    floatify(dRef.current, { y: -10, x: 8, r: -2.0, d1: 3.0, d2: 2.9 });
 
     return () => anims.forEach((a) => a?.kill?.());
   }, []);
@@ -167,38 +143,7 @@ export default function App() {
     return () => obs.disconnect();
   }, []);
 
-  // Find nearest bubble to AR cursor among all 3
-  const getNearestChoice = () => {
-    const pkt = latestRef?.current || {};
-    const x = typeof pkt.x === "number" ? pkt.x : 0.5;
-    const y = typeof pkt.y === "number" ? pkt.y : 0.5;
-
-    const px = clamp(x, 0, 1) * window.innerWidth;
-    const py = clamp(y, 0, 1) * window.innerHeight;
-
-    const entries = [
-      { key: "pardeep", c: getCenter(pRef.current) },
-      { key: "karanvir", c: getCenter(kRef.current) },
-      { key: "deepanshu", c: getCenter(dRef.current) },
-    ].filter((e) => !!e.c);
-
-    if (!entries.length) return activeSection || "pardeep";
-
-    let best = entries[0].key;
-    let bestD = Number.POSITIVE_INFINITY;
-
-    for (const e of entries) {
-      const dx = e.c.cx - px;
-      const dy = e.c.cy - py;
-      const d2 = dx * dx + dy * dy;
-      if (d2 < bestD) {
-        bestD = d2;
-        best = e.key;
-      }
-    }
-
-    return best;
-  };
+  const getNearestChoice = () => "pardeep";
 
   // AR highlight nearest bubble
   useEffect(() => {
@@ -210,17 +155,12 @@ export default function App() {
 
     if (!arEnabled) {
       setOutline("pardeep", false);
-      setOutline("karanvir", false);
-      setOutline("deepanshu", false);
       return;
     }
 
     let raf = 0;
     const loop = () => {
-      const choice = getNearestChoice();
-      setOutline("pardeep", choice === "pardeep");
-      setOutline("karanvir", choice === "karanvir");
-      setOutline("deepanshu", choice === "deepanshu");
+      setOutline("pardeep", true);
       raf = requestAnimationFrame(loop);
     };
 
@@ -279,8 +219,7 @@ export default function App() {
       </aside>
 
       {SECTIONS.map((s, idx) => {
-        const ref =
-          s.key === "pardeep" ? pRef : s.key === "karanvir" ? kRef : dRef;
+        const ref = pRef;
 
         return (
           <section
@@ -318,8 +257,7 @@ export default function App() {
               </motion.button>
 
               <div className="hub3-meta">
-                <span>{`Section ${idx + 1}/3`}</span>
-                <span>↓ Scroll</span>
+                <span>Portfolio</span>
               </div>
             </div>
           </section>
