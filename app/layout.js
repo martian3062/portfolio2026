@@ -3,7 +3,7 @@ import "./globals.css";
 export const metadata = {
   title: "PARDEEP SINGH // FULL-STACK ENGINEER",
   description:
-    "Portfolio for Pardeep Singh — full-stack engineer building AI systems, real-time platforms, and impossible products at the edge of code and science.",
+    "Portfolio for Pardeep Singh — full-stack developer and ML-automation engineer building clinical AI, agentic systems, and Web3 products. 5 IEEE papers; live internships at 4BaseCare and VECTRA International.",
 };
 
 export default function RootLayout({ children }) {

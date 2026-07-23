@@ -2,17 +2,17 @@ const capabilities = [
   {
     num: '01',
     title: 'Full-Stack Product Engineering',
-    body: 'End-to-end systems with React, Django REST, FastAPI, and MERN — from schema design to deployed product. Currently at 4BaseCare building clinical AI dashboards with GCP and vector databases.',
+    body: 'End-to-end systems with React, Next.js, Django REST, FastAPI, and Node — from schema design to deployed product. Currently building clinical AI dashboards at 4BaseCare and automating business workflows in Zoho at VECTRA International.',
   },
   {
     num: '02',
     title: 'ML Automation & Agentic AI',
-    body: 'LangGraph agents, LLM pipelines, DINO-based self-supervised models, PyTorch CV pipelines. Research across DNA analysis, edge LLM compression, and multilingual NLP — 5 IEEE papers.',
+    body: 'Self-healing multi-agent swarms (eraya), LangGraph agents, and LLM pipelines. Clinical computer vision with Slideflow, DINOv2, and H-Optimus on whole-slide images. Research across DNA analysis, edge-LLM compression, and multilingual NLP — 5 IEEE papers.',
   },
   {
     num: '03',
     title: 'Web3 & Real-Time Systems',
-    body: 'Solidity contracts, LLM-to-on-chain transaction agents on Monad Testnet. WebRTC telemedicine, WebSocket dashboards, Kafka streams — systems built for zero-latency tolerance.',
+    body: 'Solidity contracts and Nemesis — an LLM-to-on-chain agent system on Monad Testnet. WebRTC telemedicine, WebSocket dashboards, and real-time swarm telemetry — systems built for zero-latency tolerance.',
   },
 ]
 
@@ -33,12 +33,14 @@ export default function About() {
         <div className="about-single">
           <p className="about-lead">
             Data Science Intern at <strong style={{ color: 'var(--plasma)' }}>4BaseCare Precision Health</strong> (Feb 2026 –
-            Present) — training cancer biomarker models with DINO-based self-supervised learning,
-            building clinical dashboards with vector databases, and integrating A2A/MCP protocols on GCP.
+            Present) — building automated ML pipelines for cancer analysis (MSI, HER2/ER/PR on H&amp;E
+            whole-slide images), vector-DB clinical AI, and A2A/MCP integrations on GCP. Concurrently a
+            Zoho Systems Intern at <strong style={{ color: 'var(--plasma)' }}>VECTRA International BV</strong> (Brussels),
+            automating business workflows with custom modules and Deluge.
           </p>
           <p className="about-lead">
             The work spans healthcare AI, Web3 automation, and systems research — 5 IEEE papers
-            published, 2 products shipped live, and 9+ hackathons entered. The throughline is
+            published, 3 products shipped live, and 8+ hackathons entered. The throughline is
             the same: ship things that hold up past the demo.
           </p>
 

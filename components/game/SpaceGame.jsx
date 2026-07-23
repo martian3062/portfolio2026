@@ -19,23 +19,23 @@ const DISTRICTS = [
     color: '#00d4ff',
     accent: '#ffd166',
     items: [
-      { t: 'Chandigarh University', n: 'B.E. Computer Science, 2022-2026, CGPA 7.7' },
-      { t: 'IGNOU', n: 'B.Sc. General, distance program' },
-      { t: 'Certifications', n: 'Microsoft AI, NVIDIA Deep Learning, Coursera' },
+      { t: 'Chandigarh University', n: 'B.E. Computer Science 2022-2026 · CGPA 7.7 · patent filed' },
+      { t: 'IGNOU', n: 'B.Sc. General (distance) · CGPA 6.3 · Genomic Data Science' },
+      { t: 'Certifications', n: 'Microsoft AI Agents · NVIDIA DL for CV · Coursera' },
     ],
   },
   {
     id: 'work',
-    name: '4BASECARE HQ',
+    name: 'CAREER ORBIT',
     subtitle: '// EXPERIENCE',
     position: [24, 0, -52],
     size: [12, 30, 12],
     color: '#ff4f8b',
     accent: '#00ff88',
     items: [
-      { t: 'Data Science Intern', n: 'Cancer model training with DINO and CV pipelines' },
-      { t: 'Clinical AI Dashboards', n: 'Vector databases, guardrails, A2A/MCP, GCP' },
-      { t: 'Automation', n: 'Applied ML systems for real workflows' },
+      { t: '4BaseCare — Data Science Intern', n: 'Cancer ML pipelines: MSI, HER2/ER/PR on H&E slides' },
+      { t: 'VECTRA International — Zoho Intern', n: 'Deluge scripts + cross-app automation (Brussels)' },
+      { t: 'Clinical AI', n: 'Vector-DB extraction, Guardrails, A2A/MCP, GCP' },
     ],
   },
   {
@@ -47,9 +47,9 @@ const DISTRICTS = [
     color: '#ff8a00',
     accent: '#7c5cff',
     items: [
-      { t: 'MedGenie 3.0', n: 'Healthcare AI with React, Django, JWT, LLMs' },
-      { t: 'Telemedicine', n: 'WebRTC sessions and clinical dashboards' },
-      { t: 'Gen3 DeFi Agent', n: 'Wallet flows, WebSockets, simulation engine' },
+      { t: 'eraya', n: 'Self-healing multi-agent swarm · fault-tolerant orchestration' },
+      { t: 'Nemesis — ML DeFi Agent', n: 'NL to on-chain transactions on Monad Testnet' },
+      { t: 'MedGenie 3.0', n: 'One Health platform · React, Django, WebRTC · IDEA-ONE finalist' },
     ],
   },
   {
@@ -61,9 +61,9 @@ const DISTRICTS = [
     color: '#a66cff',
     accent: '#00d4ff',
     items: [
-      { t: 'DNA Analysis', n: 'Machine learning approaches in genomics' },
-      { t: 'Low-resource LLMs', n: 'Multilingual model evaluation and compression' },
-      { t: 'AAA Game Terrain', n: 'Wavelet-based terrain generation research' },
+      { t: 'DNA Analysis — ICWITE 2025', n: 'Machine learning approaches in genomics' },
+      { t: 'Edge LLM Compression — ICPC2T 2026', n: 'Adaptive local LLM compression under edge constraints' },
+      { t: 'AAA Terrain — DELCON 2025', n: 'Wavelet-based terrain gen for ray-traced games' },
     ],
   },
   {
@@ -75,9 +75,9 @@ const DISTRICTS = [
     color: '#00ff88',
     accent: '#ffef5a',
     items: [
-      { t: 'Core', n: 'Python, JavaScript, Django, DRF, React, WebSockets' },
-      { t: 'Platform', n: 'Docker, AWS, GCP, Postgres, SQLite, MySQL, Git' },
-      { t: 'AI / ML', n: 'LLM tooling, computer vision, forecasting models' },
+      { t: 'Core', n: 'Python, SQL, JS, Go, Kotlin, C++ · Django, FastAPI, React, Next.js' },
+      { t: 'AI / ML', n: 'PyTorch, Slideflow, DINOv2, H-Optimus, LangGraph, n8n, Ollama' },
+      { t: 'Platform', n: 'Docker, Kubernetes, AWS, GCP, Zoho, Web3.py, Solidity' },
     ],
   },
   {
@@ -91,7 +91,7 @@ const DISTRICTS = [
     items: [
       { t: 'Email', n: 'sandhupardeep300@gmail.com' },
       { t: 'LinkedIn', n: 'linkedin.com/in/pardeep-singh' },
-      { t: 'GitHub', n: 'github.com/pardeepsandhu' },
+      { t: 'GitHub', n: 'github.com/martian3062' },
     ],
   },
 ]

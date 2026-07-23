@@ -5,16 +5,17 @@ import MarqueeText from '../ui/MarqueeText'
 
 const highlights = [
   { target: 5,            suffix: '',  noCount: false, label: 'IEEE Papers Published' },
-  { target: 2,            suffix: '',  noCount: false, label: 'Products Shipped' },
-  { target: 9,            suffix: '+', noCount: false, label: 'Hackathons Entered' },
+  { target: 3,            suffix: '',  noCount: false, label: 'Products Shipped' },
+  { target: 8,            suffix: '+', noCount: false, label: 'Hackathons Entered' },
   { target: 'Full-Stack', suffix: '',  noCount: true,  label: 'ML · Web3 · Real-time' },
 ]
 
 const techStack = [
-  'React', 'Next.js', 'Django REST', 'WebRTC', 'LangGraph',
-  'PyTorch', 'Solidity', 'n8n', 'Pinecone', 'FastAPI',
-  'Docker', 'GCP', 'DINO', 'Ollama', 'Web3.py',
-  'Kafka', 'Supabase', 'Framer Motion', 'Three.js',
+  'React', 'Next.js', 'Django REST', 'FastAPI', 'GraphQL',
+  'LangGraph', 'n8n', 'Ollama', 'Zoho', 'Claude Code',
+  'PyTorch', 'DINOv2', 'Slideflow', 'H-Optimus', 'OpenCV',
+  'Solidity', 'Web3.py', 'Monad', 'Docker', 'Kubernetes',
+  'AWS', 'GCP', 'WebRTC', 'Three.js',
 ]
 
 function Counter({ target, suffix, noCount }) {
@@ -74,9 +75,9 @@ export default function Hero() {
         <p className="hero-title">FULL-STACK DEVELOPER · ML AUTOMATION</p>
 
         <p className="hero-desc">
-          Data Science Intern at 4BaseCare — training cancer models with DINO &amp; CV pipelines.
-          Building end-to-end products where healthcare, AI agents, and Web3 converge.
-          5 IEEE publications. 9+ hackathons. Ships past the prototype phase.
+          Data Science Intern at 4BaseCare building automated cancer-diagnostics ML pipelines,
+          and Zoho Systems Intern at VECTRA International (Brussels). Shipping products where
+          healthcare AI, agents, and Web3 converge. 5 IEEE papers. 8+ hackathons. Built to last past the demo.
         </p>
 
         <div className="hero-actions">

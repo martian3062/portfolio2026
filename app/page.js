@@ -1,5 +1,6 @@
 'use client'
 import { useState } from 'react'
+import dynamic from 'next/dynamic'
 import Nav from '../components/ui/Nav'
 import SmoothScroll from '../components/ui/SmoothScroll'
 import Hero from '../components/sections/Hero'
@@ -8,8 +9,13 @@ import Manifesto from '../components/sections/Manifesto'
 import Projects from '../components/sections/Projects'
 import Credentials from '../components/sections/Credentials'
 import Contact from '../components/sections/Contact'
+import Play from '../components/sections/Play'
 import ExperienceLoader from '../components/canvas/ExperienceLoader'
 import GameLoader from '../components/game/GameLoader'
+
+const DigitalTwin = dynamic(() => import('../components/ui/DigitalTwin'), { ssr: false })
+const KiteGame    = dynamic(() => import('../components/game/KiteGame'),  { ssr: false })
+const CameraHUD   = dynamic(() => import('../components/ui/CameraHUD'),   { ssr: false })
 
 export default function HomePage() {
   const [mode, setMode] = useState('portfolio')
@@ -18,6 +24,14 @@ export default function HomePage() {
     return (
       <div className="game-enter">
         <GameLoader onExit={() => setMode('portfolio')} />
+      </div>
+    )
+  }
+
+  if (mode === 'kite') {
+    return (
+      <div className="game-enter">
+        <KiteGame onExit={() => setMode('portfolio')} />
       </div>
     )
   }
@@ -33,6 +47,7 @@ export default function HomePage() {
           <Manifesto />
           <Projects />
           <Credentials />
+          <Play onGameMode={() => setMode('game')} onKite={() => setMode('kite')} />
           <Contact />
         </main>
         <footer className="site-footer">
@@ -44,6 +59,10 @@ export default function HomePage() {
           </div>
         </footer>
       </div>
+      {/* Floating digital twin widget */}
+      <DigitalTwin />
+      {/* Camera HUD + hand tracker */}
+      <CameraHUD />
     </SmoothScroll>
   )
 }

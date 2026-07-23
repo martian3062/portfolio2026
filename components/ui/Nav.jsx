@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
+import VersionBanner from './VersionBanner'
 
 export default function Nav({ onGameMode }) {
   const [scrolled, setScrolled] = useState(false)
@@ -23,7 +24,9 @@ export default function Nav({ onGameMode }) {
   }, [])
 
   return (
-    <header className={`nav ${scrolled ? 'nav-scrolled' : ''}`}>
+    <>
+    <VersionBanner />
+    <header className={`nav ${scrolled ? 'nav-scrolled' : ''}`} style={{ top: 38 }}>
       <div className="nav-inner">
         <div className="nav-brand">
           <span className="nav-signal" />
@@ -42,5 +45,6 @@ export default function Nav({ onGameMode }) {
         <div className="nav-time" aria-hidden="true">{time}</div>
       </div>
     </header>
+    </>
   )
 }

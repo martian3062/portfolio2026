@@ -112,7 +112,7 @@ export default function CosmicRing() {
       </group>
 
       {/* ── Glass / ice transmission ring ── */}
-      <mesh ref={glassRing} rotation={[-Math.PI*0.12,0.6,Math.PI*0.06]}>
+      <mesh ref={glassRing} rotation={[-Math.PI*0.12,0.6,Math.PI*0.06]} scale={0.9}>
         <torusGeometry args={[5.6, 0.52, 28, 130]} />
         <MeshTransmissionMaterial
           backside backsideThickness={0.32}
@@ -122,12 +122,12 @@ export default function CosmicRing() {
           clearcoat={1}
           clearcoatRoughness={0.01}
           transmission={0.97}
-          chromaticAberration={1.2}
-          color="#c8e4ff"
+          chromaticAberration={0.55}
+          color="#7fb6d6"
           attenuationColor="#001030"
-          attenuationDistance={0.5}
-          envMapIntensity={2.2}
-          iridescence={0.55}
+          attenuationDistance={0.75}
+          envMapIntensity={0.82}
+          iridescence={0.28}
           iridescenceIOR={1.38}
           iridescenceThicknessRange={[80,400]}
         />
@@ -142,7 +142,7 @@ export default function CosmicRing() {
       {/* ── Reactor core (physical light source stand-in) ── */}
       <mesh>
         <sphereGeometry args={[0.42,24,24]} />
-        <meshStandardMaterial color="#ffffff" emissive="#88bbff" emissiveIntensity={1.2} />
+        <meshStandardMaterial color="#aac7dd" emissive="#3f91b8" emissiveIntensity={0.34} />
       </mesh>
 
       {/* ── Inner concentric wire-frame trusses ── */}

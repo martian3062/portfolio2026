@@ -83,7 +83,7 @@ function GravLensPass({ bhRef }) {
     uCenter:   { value: new THREE.Vector2(0.5, 0.5) },
     uRadius:   { value: 0.075 },
     uAspect:   { value: 16 / 9 },
-    uStrength: { value: 1.75 },
+    uStrength: { value: 1.52 },
   }), [fbo])
 
   // Priority -1 = capture scene to FBO BEFORE R3F's main render
@@ -275,24 +275,56 @@ function RelativisticJets() {
   )
 }
 
-function Scene({ mouse, bhRef, quality }) {
+function ReactiveWorld({ mouse, clickPulse, children }) {
+  const group = useRef()
+  const press = useRef(0)
+  const seenClick = useRef(-1)
+  const smoothScroll = useRef(0)
+
+  useFrame((_, delta) => {
+    if (!group.current) return
+
+    if (clickPulse.current.seq !== seenClick.current) {
+      seenClick.current = clickPulse.current.seq
+      press.current = 1
+    }
+
+    press.current = THREE.MathUtils.damp(press.current, 0, 4.2, delta)
+    smoothScroll.current = THREE.MathUtils.damp(smoothScroll.current, THREE.MathUtils.clamp(scrollState.velocity / 900, -0.9, 0.9), 3.4, delta)
+    scrollState.velocity *= Math.pow(0.08, delta)
+
+    group.current.rotation.y = THREE.MathUtils.damp(group.current.rotation.y, mouse.current.x * 0.13 + smoothScroll.current * 0.08, 2.6, delta)
+    group.current.rotation.x = THREE.MathUtils.damp(group.current.rotation.x, -mouse.current.y * 0.055, 2.4, delta)
+    group.current.position.x = THREE.MathUtils.damp(group.current.position.x, mouse.current.x * 0.28 - smoothScroll.current * 0.42, 3.2, delta)
+    group.current.position.y = THREE.MathUtils.damp(group.current.position.y, mouse.current.y * 0.14, 3.2, delta)
+
+    const s = 1 + press.current * 0.022
+    group.current.scale.setScalar(s)
+  })
+
+  return <group ref={group}>{children}</group>
+}
+
+function Scene({ mouse, clickPulse, bhRef, quality }) {
   return (
     <>
       <Environment preset="warehouse" background={false} />
 
-      <NebulaBackground />
-      <CosmicRing />
-      <QuantumHelix position={[-7, 1, -16]} />
+      <ReactiveWorld mouse={mouse} clickPulse={clickPulse}>
+        <NebulaBackground />
+        <CosmicRing />
+        <QuantumHelix position={[-7, 1, -16]} />
 
-      <BlackHole ref={bhRef} mouse={mouse} />
-      <RelativisticJets />
-      <PhotoNeRFMesh position={[-5.8, 0.1, -7.6]} rotation={[0.08, 0.76, 0.02]} scale={1.05} />
-      <PhotoNeRFMesh position={[5.7, -0.2, -10.8]} rotation={[-0.04, -0.7, -0.03]} scale={0.92} opacity={0.58} />
-      <LocalSpacecraftModels />
-      <AstrophageOrbs />
-      <ScifiModels mouse={mouse} />
-      <DustField />
-      <MouseRipple mouse={mouse} />
+        <BlackHole ref={bhRef} mouse={mouse} />
+        <RelativisticJets />
+        <PhotoNeRFMesh position={[-5.8, 0.1, -7.6]} rotation={[0.08, 0.76, 0.02]} scale={1.05} />
+        <PhotoNeRFMesh position={[5.7, -0.2, -10.8]} rotation={[-0.04, -0.7, -0.03]} scale={0.92} opacity={0.58} />
+        <LocalSpacecraftModels />
+        <AstrophageOrbs />
+        <ScifiModels mouse={mouse} />
+        <DustField />
+      </ReactiveWorld>
+      <MouseRipple mouse={mouse} clickPulse={clickPulse} />
 
       {/* FBO lensing quad */}
       <GravLensPass bhRef={bhRef} />
@@ -301,10 +333,10 @@ function Scene({ mouse, bhRef, quality }) {
 
       {/* Lighting */}
       <ambientLight intensity={0.016} />
-      <pointLight position={[0, 0.4, 1.2]}  intensity={3.2} color="#5ab4cc" distance={22} decay={2}/>
+      <pointLight position={[0, 0.4, 1.2]}  intensity={3.0} color="#7edfff" distance={24} decay={2}/>
       <pointLight position={[-5, 2, -5]}     intensity={1.0} color="#c07820" distance={18} decay={2}/>
       <pointLight position={[4, -2, -12]}    intensity={1.4} color="#2244aa" distance={20} decay={2}/>
-      <pointLight position={[1.5, 0.5, -28]} intensity={10}  color="#eef4ff" distance={55} decay={2}/>
+      <pointLight position={[1.5, 0.5, -28]} intensity={6.0} color="#cde7ff" distance={50} decay={2}/>
 
       {/* Post-processing — no custom Effect, no wrapEffect */}
       <EffectComposer multisampling={0}>
@@ -313,10 +345,10 @@ function Scene({ mouse, bhRef, quality }) {
             bokehScale={quality > 1 ? 2.0 : 1.2} height={quality > 1 ? 700 : 400} />
         )}
         <Bloom
-          intensity={1.45}
-          luminanceThreshold={0.34}
-          luminanceSmoothing={0.65}
-          radius={0.75}
+          intensity={1.08}
+          luminanceThreshold={0.56}
+          luminanceSmoothing={0.8}
+          radius={0.5}
           mipmapBlur
         />
         <ChromaticAberration
@@ -324,7 +356,7 @@ function Scene({ mouse, bhRef, quality }) {
           offset={[0.0006, 0.0006]}
         />
         <Noise   opacity={0.013} blendFunction={BlendFunction.SOFT_LIGHT}/>
-        <Vignette eskil={false}  offset={0.28} darkness={0.80}/>
+        <Vignette eskil={false}  offset={0.2} darkness={0.9}/>
       </EffectComposer>
     </>
   )
@@ -334,6 +366,7 @@ function Scene({ mouse, bhRef, quality }) {
 export default function Experience() {
   const [quality, setQuality] = useState(1)
   const mouse  = useRef({ x: 0, y: 0 })
+  const clickPulse = useRef({ x: 0.5, y: 0.5, seq: 0 })
   const bhRef  = useRef()
 
   useEffect(() => {
@@ -341,8 +374,31 @@ export default function Experience() {
       mouse.current.x =  (e.clientX / window.innerWidth)  * 2 - 1
       mouse.current.y = -((e.clientY / window.innerHeight) * 2 - 1)
     }
+    const onTouchMove = (e) => {
+      const t = e.touches?.[0]
+      if (!t) return
+      mouse.current.x = (t.clientX / window.innerWidth) * 2 - 1
+      mouse.current.y = -((t.clientY / window.innerHeight) * 2 - 1)
+    }
     window.addEventListener('mousemove', onMove)
-    return () => window.removeEventListener('mousemove', onMove)
+    window.addEventListener('touchmove', onTouchMove, { passive: true })
+    return () => {
+      window.removeEventListener('mousemove', onMove)
+      window.removeEventListener('touchmove', onTouchMove)
+    }
+  }, [])
+
+  useEffect(() => {
+    const onPointerDown = (e) => {
+      if (e.button !== 0) return
+      clickPulse.current = {
+        x: e.clientX / window.innerWidth,
+        y: 1 - e.clientY / window.innerHeight,
+        seq: clickPulse.current.seq + 1,
+      }
+    }
+    window.addEventListener('pointerdown', onPointerDown)
+    return () => window.removeEventListener('pointerdown', onPointerDown)
   }, [])
 
   useEffect(() => {
@@ -366,7 +422,7 @@ export default function Experience() {
         onCreated={({ gl }) => {
           gl.setClearColor('#00000a')
           gl.toneMapping = THREE.ACESFilmicToneMapping
-          gl.toneMappingExposure = 0.68
+          gl.toneMappingExposure = 0.56
         }}
         dpr={quality > 1 ? 2 : 1.5}
       >
@@ -377,7 +433,7 @@ export default function Experience() {
           onIncline={() => setQuality(q => Math.min(2, q + 1))}
         />
         <Suspense fallback={null}>
-          <Scene mouse={mouse} bhRef={bhRef} quality={quality} />
+          <Scene mouse={mouse} clickPulse={clickPulse} bhRef={bhRef} quality={quality} />
         </Suspense>
       </Canvas>
     </div>

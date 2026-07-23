@@ -80,13 +80,13 @@ void main() {
 
   // ── final colour ─────────────────────────────────────────────
   float bright = mask * beam * detail * (1.0-rNorm);
-  vec3  col    = blackbody(T_K) * bright * 1.55;
-  col += vec3(1.0,0.95,0.88) * photon * 4.0 * mask;
+  vec3  col    = blackbody(T_K) * bright * 2.3;
+  col += vec3(1.0,0.95,0.88) * photon * 5.6 * mask;
 
   // Secondary image is dimmer (it's the lensed path — less flux)
   if(uSecondary > 0.5) col *= 0.28;
 
-  float alpha = mask * clamp(bright*0.64 + photon*0.62, 0.0, 0.84);
+  float alpha = mask * clamp(bright*0.86 + photon*0.78, 0.0, 0.96);
   if(uSecondary > 0.5) alpha *= 0.55;
 
   gl_FragColor = vec4(col, alpha);
@@ -160,6 +160,9 @@ const BlackHole = forwardRef(function BlackHole({ mouse }, ref) {
       groupRef.current.rotation.y = smoothX.current * 0.09
       groupRef.current.position.x = -smoothP.current * 3.0
       groupRef.current.position.y = -smoothP.current * 0.5
+      // Scroll: BH grows and approaches — camera pulls back but BH scales up faster
+      groupRef.current.position.z =  smoothP.current * 5.5
+      groupRef.current.scale.setScalar(0.82 + smoothP.current * 1.55)
     }
   })
 
@@ -183,7 +186,7 @@ const BlackHole = forwardRef(function BlackHole({ mouse }, ref) {
         <meshBasicMaterial
           color="#fff2cc"
           transparent
-          opacity={0.54}
+          opacity={0.82}
           blending={THREE.AdditiveBlending}
           depthWrite={false}
         />
@@ -194,7 +197,7 @@ const BlackHole = forwardRef(function BlackHole({ mouse }, ref) {
         <meshBasicMaterial
           color="#9edcff"
           transparent
-          opacity={0.3}
+          opacity={0.4}
           blending={THREE.AdditiveBlending}
           depthWrite={false}
         />
@@ -237,8 +240,8 @@ const BlackHole = forwardRef(function BlackHole({ mouse }, ref) {
         <meshStandardMaterial
           color="#000000"
           emissive="#ff6600"
-          emissiveIntensity={0.025}
-          transparent opacity={0.045}
+          emissiveIntensity={0.05}
+          transparent opacity={0.075}
           depthWrite={false}
           blending={THREE.AdditiveBlending}
         />

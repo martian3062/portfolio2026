@@ -3,16 +3,20 @@ const credentials = [
     title: 'EXPERIENCE',
     items: [
       {
+        title: 'VECTRA International BV',
+        note: 'Zoho Systems Intern · Jun 2026 – Present · Remote (Brussels, Belgium). Custom Zoho modules, Deluge scripts, and cross-app integrations automating internal operations, reporting, and process workflows.',
+      },
+      {
         title: '4BaseCare Precision Health',
-        note: 'Data Science Intern · Feb 2026 – Present. Cancer model training with DINO / SSL / CV pipelines; clinical dashboard with vector DBs, Guardrails, A2A/MCP, GCP.',
+        note: 'Data Science Intern · Feb 2026 – Present · Remote (Bengaluru). Automated ML pipelines for cancer analysis (MSI, HER2/ER/PR on H&E WSIs); vector-DB clinical AI with Guardrails, A2A/MCP, GCP; EHR/document OCR.',
       },
       {
         title: 'Chandigarh University',
-        note: 'B.E. Computer Science & Engineering · Sep 2022 – Jun 2026 · CGPA 7.7/10. Focus: Full-Stack, Agentic ML, Automation.',
+        note: 'B.E. Computer Science & Engineering · Sep 2022 – Jun 2026 · CGPA 7.7/10. Final-year patent (filed) — Evolet: Patient First, a patient-sovereign digital twin. Certs: Microsoft AI Agents, NVIDIA DL for CV.',
       },
       {
         title: 'IGNOU',
-        note: 'B.Sc. General (Distance) · Jul 2022 – Jun 2026 · CGPA 6.3/10. Biology, Microbiology, Bioinformatics; Genomic Data Science + Cancer Biology (Johns Hopkins, Coursera).',
+        note: 'B.Sc. General (Distance) · Jul 2022 – Jun 2026 · CGPA 6.3/10. Botany, Microbiology, Bioinformatics; Genomic Data Science + Cancer Biology Specialization.',
       },
     ],
   },
@@ -46,19 +50,19 @@ const credentials = [
     items: [
       {
         title: 'Languages & Frameworks',
-        note: 'Python · JavaScript · Go · Kotlin · C++ · Django · FastAPI · Flask · MERN · Streamlit · Astro',
+        note: 'Python · SQL · JavaScript · Kotlin · Go · C++ · Django · FastAPI · Flask · React · Next.js · Node.js · GraphQL',
       },
       {
-        title: 'ML & Agents',
-        note: 'PyTorch · LangGraph · Pinecone · n8n · Ollama · DINO · XGBoost · OpenCV · ARIMA · LazySlide · Polars',
+        title: 'ML & Clinical AI',
+        note: 'PyTorch · XGBoost · OpenCV · timm · PySpark · Polars · Slideflow · H-Optimus · DINOv2 · Macenko · SNOMED-CT',
       },
       {
-        title: 'Web3 & Cloud',
-        note: 'Solidity · Web3.py · IPFS · MetaMask · QuickNode · Docker · AWS · GCP · Kafka · Supabase',
+        title: 'Agents · Web3 · Cloud',
+        note: 'LangGraph · n8n · Ollama · Zoho · Claude Code · Codex · Solidity · Web3.py · IPFS · QuickNode · Dune · Truffle · Docker · Kubernetes · AWS · GCP',
       },
       {
-        title: 'Hackathons',
-        note: 'Monad Blitz New Delhi · AI Builders Bootcamp · IDEA-ONE One-Health (Finalist) · Innovate-a-thon 3.0 · Byteverse 1.0 · SAP Hackfest · TrackShift · SquareHacks 2025 · IIIT Delhi E-Summit 2025',
+        title: 'Hackathons & Bootcamps',
+        note: 'AMTZ MedTech 2026 · Monad Blitz New Delhi · IDEA-ONE One-Health (Finalist) · TrackShift · Byteverse 1.0 · Innovate-a-thon 3.0 · SAP Hackfest · IIIT Delhi E-Summit 2025 · AI Builders Bootcamp · IIT Guwahati Summer Analytica',
       },
     ],
   },
@@ -72,7 +76,7 @@ export default function Credentials() {
           <p className="section-eyebrow">DATA ARCHIVE // CREDENTIALS</p>
           <h2 className="section-title">
             5 IEEE papers,{' '}
-            <span className="accent-warm">live internship,</span>
+            <span className="accent-warm">two live internships,</span>
             {' '}stack built for shipping.
           </h2>
         </div>

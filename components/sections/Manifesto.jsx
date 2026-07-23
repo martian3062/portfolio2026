@@ -3,8 +3,8 @@ import { useEffect, useRef } from 'react'
 
 const metrics = [
   { num: '5',   label: 'IEEE Papers' },
-  { num: '2',   label: 'Systems Shipped' },
-  { num: '9+',  label: 'Hackathons' },
+  { num: '3',   label: 'Systems Shipped' },
+  { num: '8+',  label: 'Hackathons' },
   { num: '0ms', label: 'Latency Tolerance' },
 ]
 
