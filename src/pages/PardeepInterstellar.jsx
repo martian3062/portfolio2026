@@ -53,6 +53,20 @@ export default function PardeepInterstellar() {
             when: "Jul 2022 – Jun 2026",
             desc: "Exposure: Biology, Microbiology, Physics, Chemistry, Bioinformatics. Completed Genomic Data Science & Cancer Biology Specializations (Johns Hopkins University, Coursera).",
           },
+          {
+            head: "National Institute of Open Schooling (NIOS) · Intermediate, PCMB",
+            when: "Jan 2023 – Oct 2023",
+            desc: "PCMB with English and Punjabi as language subjects.",
+          },
+          {
+            head: "Central Board of Secondary Education · Intermediate, PCM",
+            when: "Apr 2020 – Jul 2021",
+            desc: "Grade: 83%.",
+          },
+          {
+            head: "Central Board of Secondary Education · Matriculation, General",
+            when: "Apr 2018 – Mar 2019",
+          },
         ],
       },
       {
@@ -429,7 +443,7 @@ export default function PardeepInterstellar() {
                         {e.head}
                         {e.when && <span className="exp-when"> — {e.when}</span>}
                       </div>
-                      <p className="exp-desc">{e.desc}</p>
+                      {e.desc && <p className="exp-desc">{e.desc}</p>}
                     </div>
                   ))
                 : s.body.map((t, i) => (
@@ -735,7 +749,7 @@ const css = `
   background: rgba(255,255,255,.06);
   font-weight:1000; font-size:12px; letter-spacing:.08em;
 }
-.card-body{margin-top:18px; display:flex; flex-direction:column; gap:12px;}
+.card-body{margin-top:18px; display:flex; flex-direction:column; gap:12px; max-height:calc(100vh - 340px); overflow-y:auto; padding-right:6px;}
 .bullet{display:flex; gap:10px; align-items:flex-start;}
 .b-dot{
   width:10px; height:10px; border-radius:999px; margin-top:6px;
