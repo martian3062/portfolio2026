@@ -27,12 +27,14 @@ export default function PardeepInterstellar() {
         subtitle: "VECTRA International • 4BaseCare",
         entries: [
           {
-            head: "VECTRA International BV — Jun 2026 – Present",
-            desc: "Zoho Systems Intern · Remote (Brussels, Belgium). Building custom Zoho modules, Deluge scripts, and cross-app integrations to automate internal operations, reporting, and process workflows across the Zoho suite.",
+            head: "VECTRA International BV · Zoho Systems Intern · Remote (Brussels, Belgium)",
+            when: "Jun 2026 – Present",
+            desc: "Building custom Zoho modules, Deluge scripts, and cross-app integrations to automate internal operations, reporting, and process workflows across the Zoho suite.",
           },
           {
-            head: "4BaseCare Precision Health — Feb 2026 – Jul 2026",
-            desc: "Data Science Intern · Remote (Bengaluru). Automated ML pipelines for cancer analysis: MSI on colorectal & endometrial and HER2/ER/PR on breast-cancer H&E whole-slide images, plus EHR / clinical-document OCR with structured field extraction. Vector-DB clinical AI for report extraction, summarization, and clinical suggestions — integrating Guardrails, A2A/MCP, and GCP.",
+            head: "4BaseCare Precision Health · Data Science Intern · Remote (Bengaluru)",
+            when: "Feb 2026 – Jul 2026",
+            desc: "Automated ML pipelines for cancer analysis: MSI on colorectal & endometrial and HER2/ER/PR on breast-cancer H&E whole-slide images, plus EHR / clinical-document OCR with structured field extraction. Vector-DB clinical AI for report extraction, summarization, and clinical suggestions — integrating Guardrails, A2A/MCP, and GCP.",
           },
         ],
       },
@@ -415,7 +417,10 @@ export default function PardeepInterstellar() {
               {s.entries
                 ? s.entries.map((e, i) => (
                     <div key={i} className="exp-item">
-                      <div className="exp-head">{e.head}</div>
+                      <div className="exp-head">
+                        {e.head}
+                        {e.when && <span className="exp-when"> — {e.when}</span>}
+                      </div>
                       <p className="exp-desc">{e.desc}</p>
                     </div>
                   ))
@@ -741,6 +746,7 @@ const css = `
   line-height:1.3;
 }
 .exp-desc{ margin:0; opacity:.82; line-height:1.55; font-size:14.5px; }
+.exp-when{ font-weight:700; font-size:14px; opacity:.6; white-space:nowrap; }
 
 .card-actions{
   display:flex; justify-content:space-between; gap:12px;
