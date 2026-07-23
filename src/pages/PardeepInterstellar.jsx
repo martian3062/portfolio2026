@@ -42,9 +42,17 @@ export default function PardeepInterstellar() {
         key: "education",
         title: "EDUCATION",
         subtitle: "Chandigarh University • IGNOU",
-        body: [
-          "Chandigarh University — B.E. Computer Science & Engineering (Sep 2022 – Jun 2026) • CGPA: 7.7/10. Final-year patent (filed) — Evolet: Patient First, a patient-sovereign digital twin with hardware-attested federated learning & ZK consent. Certifications: AI Agents for Beginners (Microsoft), Fundamentals of Deep Learning for CV (NVIDIA).",
-          "IGNOU — B.Sc General, Distance Mode (Jul 2022 – Jun 2026) • CGPA: 6.3/10. Exposure: Biology, Microbiology, Physics, Chemistry, Bioinformatics. Completed Genomic Data Science & Cancer Biology Specializations (Johns Hopkins University, Coursera).",
+        entries: [
+          {
+            head: "Chandigarh University · B.E. Computer Science & Engineering · CGPA 7.7/10",
+            when: "Sep 2022 – Jun 2026",
+            desc: "Final-year patent (filed) — Evolet: Patient First, a patient-sovereign digital twin with hardware-attested federated learning & ZK consent. Certifications: AI Agents for Beginners (Microsoft), Fundamentals of Deep Learning for CV (NVIDIA).",
+          },
+          {
+            head: "IGNOU · B.Sc General (Distance Mode) · CGPA 6.3/10",
+            when: "Jul 2022 – Jun 2026",
+            desc: "Exposure: Biology, Microbiology, Physics, Chemistry, Bioinformatics. Completed Genomic Data Science & Cancer Biology Specializations (Johns Hopkins University, Coursera).",
+          },
         ],
       },
       {
